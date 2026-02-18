@@ -13,17 +13,27 @@ router.register(r'workouts', WorkoutViewSet)
 router.register(r'activities', ActivityViewSet)
 router.register(r'leaderboard', LeaderboardViewSet)
 
+import os
 @api_view(['GET'])
 def api_root(request, format=None):
+    codespace_name = os.environ.get('CODESPACE_NAME')
+    if codespace_name:
+        base_url = f"https://{codespace_name}-8000.app.github.dev/api/"
+    else:
+        # fallback to request host (localhost or other)
+        base_url = request.build_absolute_uri('/')
+        if not base_url.endswith('/'):
+            base_url += '/'
     return Response({
-        'users': request.build_absolute_uri('users/'),
-        'teams': request.build_absolute_uri('teams/'),
-        'workouts': request.build_absolute_uri('workouts/'),
-        'activities': request.build_absolute_uri('activities/'),
-        'leaderboard': request.build_absolute_uri('leaderboard/'),
+        'users': base_url + 'users/',
+        'teams': base_url + 'teams/',
+        'workouts': base_url + 'workouts/',
+        'activities': base_url + 'activities/',
+        'leaderboard': base_url + 'leaderboard/',
     })
 
+from django.urls import re_path
 urlpatterns = [
-    path('', api_root, name='api_root'),
-    path('', include(router.urls)),
+    path('api/', api_root, name='api_root'),
+    path('api/', include(router.urls)),
 ]
